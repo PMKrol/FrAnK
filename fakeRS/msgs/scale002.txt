@@ -1,0 +1,5 @@
+-- Scale Start -- 1030422 --
+
+Weight: -1.48
+
+-- Scale Stop --
