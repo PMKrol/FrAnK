@@ -6,6 +6,8 @@ and saves it as txt file with zipped frames from camera.
 
 FrAnCs (Fire Analysys to CSV converter) translates txt file to three csv files and [todo] zip file (photos) to data.
 
+FrIC (Fire Image Converter) measure burn on image.
+
 fakeRS sends sample data (mimics serial port with ESP32 connected).
 
 # TODO
