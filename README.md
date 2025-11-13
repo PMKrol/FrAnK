@@ -16,7 +16,7 @@ fakeRS sends sample data (mimics serial port with ESP32 connected).
 esp soft with explanation.
 
 
-# Permissions
+# Permissions (doesn't work acctually - TODO)
 On Ubuntu 24.04 change usb camera permissions by creating /lib/udev/rules.d/20-webcam.rules
 
 ```#Bus 002 Device 003: ID 090c:37b6 Silicon Motion, Inc. - Taiwan (formerly Feiya Technology Corp.) USB 2.0 PC Cam
