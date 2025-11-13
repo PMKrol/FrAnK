@@ -8,6 +8,8 @@ FrAnCs (Fire Analysys to CSV converter) translates txt file to three csv files a
 
 FrIC (Fire Image Converter) measure burn on image.
 
+FrAg (Fire Aggregator) will cumulate previous results.
+
 fakeRS sends sample data (mimics serial port with ESP32 connected).
 
 # TODO
