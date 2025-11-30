@@ -1,4 +1,4 @@
-// g++ -std=c++17 -o analise_zip analise_zip.cpp -lzip `pkg-config --cflags --libs opencv4`
+// g++ -std=c++17 -o frik FrIK.cpp -lzip `pkg-config --cflags --libs opencv4`
 
 #include <iostream>
 #include <zip.h>
@@ -48,6 +48,24 @@ struct Box {
     cv::Rect rect;
     int id;
 };
+
+bool saveWarpedImage(
+    const cv::Mat& warped,
+    const std::string& originalName,
+    const std::string& directoryPath)
+{
+    // Katalog wyjściowy
+    std::string outputDir = directoryPath + "_output";
+
+    // Utwórz katalog jeśli nie istnieje
+    std::filesystem::create_directories(outputDir);
+
+    // Pełna ścieżka do pliku
+    std::string outputPath = outputDir + "/" + originalName;
+
+    // Zapis
+    return cv::imwrite(outputPath, warped);
+}
 
 void whiteOutOutsideBox(cv::Mat &mask, const Box &box)
 {
@@ -777,7 +795,7 @@ cv::Mat generateImage(const cv::Mat& image, const std::vector<Box>& boxes, int s
 
 // Funkcja do wyświetlania obrazu
 void displayImage(const cv::Mat& image) {
-    cv::imshow("Viewer", image);
+    cv::imshow("Viewer (tab, arrows, j/k/i/l)", image);
 }
 
 // Funkcja do obsługi klawiszy
@@ -792,16 +810,16 @@ void handleKeys(char key, int& currentImageIndex, int& selectedBox, std::vector<
     } else if (key == 8) {  // Backspace
         currentImageIndex = (currentImageIndex == 0) ? 0 : currentImageIndex - 1;
 
-    } else if (key == 81) {  // ←
+    } else if (key == 81 || key == 'j') {  // ←
         boxes[selectedBox - 1].rect.x -= 10;
 
-    } else if (key == 83) {  // →
+    } else if (key == 83 || key == 'l') {  // →
         boxes[selectedBox - 1].rect.x += 10;
 
-    } else if (key == 82) {  // ↑
+    } else if (key == 82 || key == 'i') {  // ↑
         boxes[selectedBox - 1].rect.y -= 10;
 
-    } else if (key == 84) {  // ↓
+    } else if (key == 84 || key == 'k') {  // ↓
         boxes[selectedBox - 1].rect.y += 10;
 
     } else if (key == 9) {  // Tab
@@ -1609,6 +1627,12 @@ void analyse(const std::string& directoryPath, const std::string& outputFileName
                 cLine = findCentralLine(fireBlob);
                 drawLines(warped, hLine, vLine, cLine);
 
+                saveWarpedImage(
+                    warped,
+                    pngBuffers[currentImageIndex].name,
+                    directoryPath
+                );
+                    
                 // Przetwarzanie wyników
                 std::string result = processResults(hLine, vLine, cLine, blackPixelCount, pngBuffers, currentImageIndex);
                 results.push_back(result);  // Dodanie wyniku do listy wyników

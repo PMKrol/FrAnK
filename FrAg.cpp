@@ -16,6 +16,7 @@
 
 struct Record {
     long long Timestamp = 0;
+    long long TimestampNorm = 0;
 
     // Dane z OSB2_frame
     std::string MotorPosition;
@@ -207,8 +208,8 @@ void normalizeTimestamps(std::map<long long, Record>& records) {
 
     for (auto& [ts, r] : records) {
         long long newTs = (ts - firstTs) / 1000; // odejmij i podziel przez 1000
-        r.Timestamp = newTs;
-        newRecords[newTs] = r;
+        r.TimestampNorm = newTs;
+        newRecords[ts] = r;
     }
 
     records = std::move(newRecords);
@@ -294,13 +295,13 @@ int main(int argc, char* argv[]) {
     
     // --- Zapis do CSV ---
     std::ofstream out(outFile);
-    out << "Timestamp,MotorPosition(k-rot),WeightLoss(*10g),IR1 (max),"
+    out << "Timestamp,TimeStampNorm,MotorPosition(k-rot),WeightLoss(*10g),IR1 (max),"
         //<< "IR2 (down),IR3 (up),IR4 (right),IR5 (left),"
         //<< "hLine(px),vLine(px),cLine(px),blackPixelCount(px^2),"
         << "hLine(cm),vLine(cm),cLine(cm),blackPixelCount(cm^2)\n";
 
     for (const auto& [ts, r] : records) {
-        out << ts << ","
+        out << ts << "," << r.TimestampNorm << ","
             << r.MotorPosition << "," << r.WeightLoss << "," << r.IR1 << "," 
             //<< r.IR2 << "," << r.IR3 << "," << r.IR4 << "," << r.IR5 << ","
             //<< r.hLine_px << "," << r.vLine_px << "," << r.cLine_px << "," << r.blackPixelCount_px2 << ","
