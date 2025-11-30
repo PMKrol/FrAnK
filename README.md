@@ -12,8 +12,10 @@ FrAg (Fire Aggregator) will cumulate previous results.
 
 fakeRS sends sample data (mimics serial port with ESP32 connected).
 
+arduino.zip contains ino file with libs for ESP32.
+
 # TODO
-esp soft with explanation.
+soft with explanation.
 
 
 # Permissions (doesn't work acctually - TODO)
