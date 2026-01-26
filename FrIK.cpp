@@ -52,6 +52,25 @@ struct Box {
 bool saveWarpedImage(
     const cv::Mat& warped,
     const std::string& originalName,
+    const std::string& directoryPath,
+    const std::string& suffix = "_output")  // domyślny "_output"
+{
+    // Katalog wyjściowy
+    std::string outputDir = directoryPath + suffix;
+
+    // Utwórz katalog jeśli nie istnieje
+    std::filesystem::create_directories(outputDir);
+
+    // Pełna ścieżka do pliku
+    std::string outputPath = outputDir + "/" + originalName;
+
+    // Zapis
+    return cv::imwrite(outputPath, warped);
+}
+
+/*bool saveWarpedImage(
+    const cv::Mat& warped,
+    const std::string& originalName,
     const std::string& directoryPath)
 {
     // Katalog wyjściowy
@@ -66,6 +85,24 @@ bool saveWarpedImage(
     // Zapis
     return cv::imwrite(outputPath, warped);
 }
+
+bool saveWarpedImage_orig(
+    const cv::Mat& warped,
+    const std::string& originalName,
+    const std::string& directoryPath)
+{
+    // Katalog wyjściowy
+    std::string outputDir = directoryPath + "_warped";
+
+    // Utwórz katalog jeśli nie istnieje
+    std::filesystem::create_directories(outputDir);
+
+    // Pełna ścieżka do pliku
+    std::string outputPath = outputDir + "/" + originalName;
+
+    // Zapis
+    return cv::imwrite(outputPath, warped);
+}*/
 
 void whiteOutOutsideBox(cv::Mat &mask, const Box &box)
 {
@@ -1248,6 +1285,9 @@ cv::Mat warpImageByCorners(const cv::Mat& originalImage,
         return cv::Mat();
     }
 
+    int exp_mult_up = 2;
+    int exp_mult_down = 1;
+    
     cv::Point2f P0 = corners[0]; // lewy górny
     cv::Point2f P1 = corners[1]; // prawy górny
     cv::Point2f P2 = corners[2]; // prawy dolny
@@ -1266,12 +1306,12 @@ cv::Mat warpImageByCorners(const cv::Mat& originalImage,
     };
 
     // 🔹 Przesuń lewe punkty w lewo
-    cv::Point2f newP0 = extendOpposite(P0, P1, 2*expandFactor);
-    cv::Point2f newP3 = extendOpposite(P3, P2, 2*expandFactor);
+    cv::Point2f newP0 = extendOpposite(P0, P1, exp_mult_up*expandFactor);
+    cv::Point2f newP3 = extendOpposite(P3, P2, exp_mult_up*expandFactor);
 
     // 🔹 Przesuń prawe punkty w prawo
-    cv::Point2f newP1 = extendPoint(P0, P1, expandFactor);
-    cv::Point2f newP2 = extendPoint(P3, P2, expandFactor);
+    cv::Point2f newP1 = extendPoint(P0, P1, exp_mult_down*expandFactor);
+    cv::Point2f newP2 = extendPoint(P3, P2, exp_mult_down*expandFactor);
 
     // Oblicz wysokość i szerokość
     double leftHeight = cv::norm(newP3 - newP0);
@@ -1282,8 +1322,9 @@ cv::Mat warpImageByCorners(const cv::Mat& originalImage,
     double bottomWidth = cv::norm(newP2 - newP3);
     double avgWidth = (topWidth + bottomWidth) / 2.0;
 
-    int outputWidth = static_cast<int>(outputHeight * (avgWidth / avgHeight));
-
+    //int outputWidth = static_cast<int>(outputHeight * (avgWidth / avgHeight));
+    int outputWidth = static_cast<int>(outputHeight * (1 + (exp_mult_down + exp_mult_up) * expandFactor));
+    
     std::vector<cv::Point2f> dstCorners = {
         cv::Point2f(0, 0),
         cv::Point2f(outputWidth - 1, 0),
@@ -1618,8 +1659,30 @@ void analyse(const std::string& directoryPath, const std::string& outputFileName
         if (corners.size() == 4) {
             cv::Mat warped = warpImageByCorners(image, corners, AREA_HEIGHT_PX);
             if (!warped.empty()) {
+                
+                saveWarpedImage(
+                    warped,
+                    pngBuffers[currentImageIndex].name,
+                    directoryPath,
+                    "_warped"
+                );
+                
                 cv::Mat fireBlob = highlightBurnEdges(warped, 0.5, &boxes[4], selectedBox, masks);
 
+                /*saveWarpedImage(
+                    fireBlob,
+                    pngBuffers[currentImageIndex].name,
+                    directoryPath,
+                    "_blob"
+                );*/
+                cv::Mat maskBGR;
+                cv::cvtColor(fireBlob, maskBGR, cv::COLOR_GRAY2BGR);
+                saveWarpedImage(
+                    maskBGR,
+                    pngBuffers[currentImageIndex].name,
+                    directoryPath,
+                    "_mask");
+                
                 // Obliczanie linii i liczby czarnych pikseli
                 Line hLine, vLine, cLine;
                 findLongestLines(fireBlob, hLine, vLine);
@@ -1630,7 +1693,8 @@ void analyse(const std::string& directoryPath, const std::string& outputFileName
                 saveWarpedImage(
                     warped,
                     pngBuffers[currentImageIndex].name,
-                    directoryPath
+                    directoryPath,
+                    "_output"
                 );
                     
                 // Przetwarzanie wyników
